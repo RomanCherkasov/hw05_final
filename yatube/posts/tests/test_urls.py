@@ -74,3 +74,8 @@ class StaticURLTests(TestCase):
                          HTTPStatus.FOUND)
         self.assertEqual(response_non_authorized_client.status_code,
                          HTTPStatus.FOUND)
+
+    def test_404_if_page_not_found(self):
+        """Проверяем возвращает ли сервер 404"""
+        response = self.authorized_client.get('/some-one-page/')
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
