@@ -59,7 +59,7 @@ def post_view(request, username, post_id):
 @login_required
 def new_post(request):
     if request.method == 'POST':
-        form = PostForm(request.POST)
+        form = PostForm(request.POST, files=request.FILES or None)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -78,7 +78,7 @@ def post_edit(request, username, post_id):
     this_post = get_object_or_404(Post, pk=post_id, author__username=username)
     if this_post.author != request.user:
         return redirect('post', username, post_id)
-    form = PostForm(request.POST or None, instance=this_post)
+    form = PostForm(request.POST or None, files=request.FILES or None, instance=this_post)
     if form.is_valid():
         form.save()
         return redirect('post', username, post_id)
@@ -91,7 +91,7 @@ def post_edit(request, username, post_id):
 
 def page_not_found(request, exception):
     # Переменная exception содержит отладочную информацию,
-    # выводить её в шаблон пользователской страницы 404 мы не станем
+    # выводить её в шаблон пользовательской страницы 404 мы не станем
     return render(
         request,
         "misc/404.html",

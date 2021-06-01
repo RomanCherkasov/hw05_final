@@ -15,7 +15,7 @@
                         {{ error|escape }}
                     </div>
                 {% endfor %}
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% for field in form %}
                         <div class="form-group row" aria-required={% if field.field.required %}"true"{% else %}"false"{% endif %}>
