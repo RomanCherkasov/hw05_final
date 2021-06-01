@@ -27,6 +27,21 @@ class Post(models.Model):
         return self.text[:15]
 
 
+class Comment(models.Model):
+    post = models.ForeignKey(
+        'Post',
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    text = models.TextField()
+    created = models.DateTimeField('Date published', auto_now_add=True)
+
+
 class Group(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)

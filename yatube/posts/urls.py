@@ -8,5 +8,6 @@ urlpatterns = [
          name='post_edit'),
     path('group/<slug:slug>/', views.group_posts, name='group'),
     path('<str:username>/', views.profile, name='profile'),
-    path('<str:username>/<int:post_id>/', views.post_view, name='post')
+    path('<str:username>/<int:post_id>/', views.post_view, name='post'),
+    path("<username>/<int:post_id>/comment", views.add_comment, name="add_comment"),
 ]

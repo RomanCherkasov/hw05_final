@@ -1,3 +1,7 @@
+import shutil
+import tempfile
+
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from ..models import Post, Group, User
@@ -11,6 +15,7 @@ class ViewsTests(TestCase):
         Создаем клиенты авторизированного и
         не авторизированного пользователя
         """
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         self.guest_client = Client()
         self.user = User.objects.create_user(
             username='TestUser'
@@ -42,6 +47,10 @@ class ViewsTests(TestCase):
             group=self.group,
             image=self.uploaded
         )
+
+    def tearDown(self):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDown()
 
     def test_pages_use_correct_template(self):
         """Проверяем что отдаются корректные Templates"""

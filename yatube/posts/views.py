@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from .models import Post, Group, User
-from .forms import PostForm
+from .models import Post, Group, User, Comment
+from .forms import PostForm, CommentForm
 
 
 def index(request):
@@ -48,12 +48,32 @@ def post_view(request, username, post_id):
     author = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author__username=username)
     count_post = post_list.count()
+    form = CommentForm(request.POST or None)
     post = post_list.filter(id=post_id)
+    all_comments = post[0].comments.all().order_by('-created')
     return render(request,
                   'post.html',
                   {'author': author,
                    'post': post[0],
-                   'count_post': count_post, })
+                   'count_post': count_post,
+                   'form': form,
+                   'comments': all_comments,
+                   })
+
+
+@login_required
+def add_comment(request, username, post_id):
+    author = get_object_or_404(User, username=username)
+    post = get_object_or_404(Post, author=author, pk=post_id)
+    form = CommentForm(request.POST or None)
+    print('Form is valid!!!')
+    if form.is_valid():
+        comment = form.save(commit=False)
+        print('Form is valid????')
+        comment.author = author
+        comment.post = post
+        form.save()
+    return redirect('post', username, post_id)
 
 
 @login_required

@@ -10,6 +10,7 @@ import tempfile
 class FormTests(TestCase):
     @classmethod
     def setUpClass(cls):
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         super().setUpClass()
         Group.objects.create(
             title='Тестовая группа',
@@ -40,6 +41,11 @@ class FormTests(TestCase):
             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
             b'\x0A\x00\x3B'
         )
+        self.uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=self.small_gif,
+            content_type='image/gif'
+        )
 
     def test_create_post(self):
         """Проверка страницы создания поста"""
@@ -64,11 +70,7 @@ class FormTests(TestCase):
 
     def test_edit_post(self):
         """Проверка страницы изменения поста"""
-        self.uploaded = SimpleUploadedFile(
-            name='small.gif',
-            content=self.small_gif,
-            content_type='image/gif'
-        )
+
         created_post = Post.objects.create(
             text='Текст тестового поста',
             author=self.user,
