@@ -1,3 +1,4 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from ..models import Post, Group, User
 from django.urls import reverse
@@ -21,15 +22,29 @@ class ViewsTests(TestCase):
             title='Тестовая группа',
             slug='test-slug'
         )
+        self.small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        self.uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=self.small_gif,
+            content_type='image/gif'
+        )
         # Создаем записи в бд
         self.post = Post.objects.create(
             text='Текст для тестового поста ',
             author=self.user,
-            group=self.group
+            group=self.group,
+            image=self.uploaded
         )
 
     def test_pages_use_correct_template(self):
-        # Проверяем что отдаются корректные Templates
+        """Проверяем что отдаются корректные Templates"""
         templates_page_names = {
             'index.html': [reverse('index')],
             'post.html': [reverse(
@@ -54,22 +69,26 @@ class ViewsTests(TestCase):
                     self.assertTemplateUsed(response, template)
 
     def test_request_context_index_page(self):
-        # Проверяем index page context
+        """Проверка контекста страницы главная"""
         response = self.authorized_client.get(reverse('index'))
         context_page = response.context['page'][0]
         self.post_check(context_page)
+        self.assertEqual(context_page.image,
+                         self.post.image)
 
     def test_request_context_group_page(self):
-        # Проверяем group page context
+        """Проверка контекста страницы группы"""
         response = self.authorized_client.get(
             reverse('group', kwargs={
                 'slug': self.group.slug,
             }))
         context_group = response.context['group']
+        context_group_img = response.context['page'][0].image
+        self.assertEqual(context_group_img, self.post.image)
         self.assertEqual(context_group.slug, self.post.group.slug)
 
     def test_request_context_new_page(self):
-        # Проверяем new page context
+        """Проверка контекста страницы создания поста"""
         response = self.authorized_client.get(reverse('new_post'))
         form_fields = {
             'text': forms.fields.CharField,
@@ -87,6 +106,7 @@ class ViewsTests(TestCase):
         self.assertEqual(self.post.author, some_post.author)
         self.assertEqual(self.post.group, some_post.group)
         self.assertEqual(self.post.pub_date, some_post.pub_date)
+        self.assertEqual(self.post.image, some_post.image)
 
     def test_request_context_post_edit(self):
         """Проверка контекста страницы редактирования"""
@@ -114,8 +134,11 @@ class ViewsTests(TestCase):
         self.assertEqual(
             response.context['count_post'],
             Post.objects.filter(author__username=self.user.username).count())
+        self.assertEqual(response.context['page'][0].image,
+                         self.post.image)
 
     def test_request_context_post_page(self):
+        """Проверка контекста страницы поста"""
         response = self.authorized_client.get(
             reverse('post',
                     kwargs={'username': self.user.username,
@@ -125,3 +148,5 @@ class ViewsTests(TestCase):
         self.assertEqual(
             response.context['count_post'],
             Post.objects.filter(author__username=self.user.username).count())
+        self.assertEqual(response.context['post'].image,
+                         self.post.image)

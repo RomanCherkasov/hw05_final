@@ -43,11 +43,7 @@ class FormTests(TestCase):
 
     def test_create_post(self):
         """Проверка страницы создания поста"""
-        self.uploaded = SimpleUploadedFile(
-            name='small.gif',
-            content=self.small_gif,
-            content_type='image/gif'
-        )
+
         group = Group.objects.first()
         form_data = {
             'text': 'Тестовый пост',
