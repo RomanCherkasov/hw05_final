@@ -21,6 +21,7 @@ class Post(models.Model):
         blank=True,
         null=True,
     )
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)
 
     def __str__(self):
         return self.text[:15]
