@@ -1,6 +1,10 @@
 from django.test import Client, TestCase
 from ..models import Post, Group, User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from django.conf import settings
+import shutil
+import tempfile
 
 
 class FormTests(TestCase):
@@ -18,20 +22,38 @@ class FormTests(TestCase):
             description='Описание тестовой группы'
         )
 
+    def tearDown(self):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDown()
+
     def setUp(self) -> None:
         self.authorized_client = Client()
         self.user = User.objects.create_user(
             username='TestUser'
         )
         self.authorized_client.force_login(self.user)
+        self.small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
 
     def test_create_post(self):
         """Проверка страницы создания поста"""
+        self.uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=self.small_gif,
+            content_type='image/gif'
+        )
         group = Group.objects.first()
         form_data = {
             'text': 'Тестовый пост',
             'author': self.user,
-            'group': group.pk
+            'group': group.pk,
+            'image': self.uploaded,
         }
         self.authorized_client.post(
             reverse('new_post'),
@@ -42,9 +64,15 @@ class FormTests(TestCase):
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, form_data['author'])
         self.assertEqual(post.group, group)
+        self.assertEqual(post.image.name, 'posts/small.gif')
 
     def test_edit_post(self):
         """Проверка страницы изменения поста"""
+        self.uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=self.small_gif,
+            content_type='image/gif'
+        )
         created_post = Post.objects.create(
             text='Текст тестового поста',
             author=self.user,
@@ -56,6 +84,7 @@ class FormTests(TestCase):
             'text': edited_text,
             'author': self.user,
             'group': edited_group.pk,
+            'image': self.uploaded,
         }
         response = self.authorized_client.post(
             reverse('post_edit', kwargs={
@@ -76,3 +105,4 @@ class FormTests(TestCase):
             }))
 
         self.assertEqual(len(response.context['page']), 0)
+        self.assertEqual(edited_post.image.name, 'posts/small.gif')
