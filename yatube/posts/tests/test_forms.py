@@ -1,16 +1,17 @@
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from ..models import Post, Group, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.conf import settings
+
 import shutil
 import tempfile
 
 
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class FormTests(TestCase):
     @classmethod
     def setUpClass(cls):
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         super().setUpClass()
         Group.objects.create(
             title='Тестовая группа',
@@ -24,7 +25,7 @@ class FormTests(TestCase):
         )
 
     def tearDown(self):
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        shutil.rmtree(settings.MEDIA_ROOT)
         super().tearDown()
 
     def setUp(self) -> None:

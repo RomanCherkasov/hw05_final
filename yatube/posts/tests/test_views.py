@@ -3,19 +3,20 @@ import tempfile
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from ..models import Post, Group, User
 from django.urls import reverse
 from django import forms
 
 
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class ViewsTests(TestCase):
     def setUp(self) -> None:
         """
         Создаем клиенты авторизированного и
         не авторизированного пользователя
         """
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
         self.guest_client = Client()
         self.user = User.objects.create_user(
             username='TestUser'
@@ -49,7 +50,7 @@ class ViewsTests(TestCase):
         )
 
     def tearDown(self):
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        shutil.rmtree(settings.MEDIA_ROOT)
         super().tearDown()
 
     def test_pages_use_correct_template(self):
