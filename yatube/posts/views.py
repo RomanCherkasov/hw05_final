@@ -66,10 +66,8 @@ def add_comment(request, username, post_id):
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, author=author, pk=post_id)
     form = CommentForm(request.POST or None)
-    print('Form is valid!!!')
     if form.is_valid():
         comment = form.save(commit=False)
-        print('Form is valid????')
         comment.author = author
         comment.post = post
         form.save()
