@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+import time
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -159,3 +160,17 @@ class ViewsTests(TestCase):
             Post.objects.filter(author__username=self.user.username).count())
         self.assertEqual(response.context['post'].image,
                          self.post.image)
+
+    def test_cache_index_page(self):
+        response1 = self.authorized_client.get(reverse('index'))
+        Post.objects.create(
+            text='Текст для тестового поста ',
+            author=self.user,
+            group=self.group,
+            image=self.uploaded
+        )
+        response2 = self.authorized_client.get(reverse('index'))
+        self.assertEqual(len(response1.content), len(response2.content))
+        time.sleep(20)
+        response3 = self.authorized_client.get(reverse('index'))
+        self.assertNotEqual(len(response2.content), len(response3.content))
