@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load cache %}
-{% block title %}Последние обновления на сайте{% endblock %}
-{% block header %}Последние обновления на сайте{% endblock %}
+{% block title %}Ваши подписки{% endblock %}
+{% block header %}Ваши подписки{% endblock %}
 {% block content %}
 <div class="container">
-    {% include 'includes/menu.html' with index=True %}
-    {% cache 20  index_page using key page_number %}
+    {% include 'includes/menu.html' with follow=True %}
+    {% cache 20  index_page %}
     {% for post in page %}
 
         {% include "includes/post_item.html" with post=post %}
@@ -13,6 +13,5 @@
     {% endfor %}
     {% endcache %}
     <p>{% include 'includes/paginator.html' %}</p>
-
 </div>
 {% endblock %}

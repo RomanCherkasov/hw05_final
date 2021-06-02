@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from .models import Post, Group, User
+from .models import Post, Group, User, Follow
 from .forms import PostForm, CommentForm
 
 
@@ -42,6 +42,7 @@ def profile(request, username):
                   'profile.html',
                   {'page': page,
                    'author': author,
+                   'profile': author,
                    'count_post': count_post, })
 
 
@@ -121,3 +122,18 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(request, "misc/500.html", status=500)
+
+
+@login_required
+def follow_index(request):
+    return render(request, 'follow.html')
+
+
+@login_required
+def profile_follow(request, username):
+    username = get_object_or_404(User, username=username)
+    return render(request, 'profile.html', {'profile': username})
+
+
+def profile_unfollow(request, username):
+    pass
