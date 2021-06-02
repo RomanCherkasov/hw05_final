@@ -4,7 +4,7 @@
 {% block header %}Последние обновления на сайте{% endblock %}
 {% block content %}
 
-    {% cache 20  index_page %}
+    {% cache 20  index_page using key page_number %}
     {% for post in page %}
 
         {% include "includes/post_item.html" with post=post %}
