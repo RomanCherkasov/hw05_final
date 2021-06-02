@@ -16,7 +16,6 @@ class ViewsTests(TestCase):
         Создаем клиенты авторизированного и
         не авторизированного пользователя
         """
-
         self.guest_client = Client()
         self.user = User.objects.create_user(
             username='TestUser'
