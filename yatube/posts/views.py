@@ -48,7 +48,6 @@ def profile(request, username):
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    print(request.user)
     check_follow = False
     if str(request.user) != 'AnonymousUser':
         check_follow = follow_check(request.user, username)
@@ -128,8 +127,6 @@ def post_edit(request, username, post_id):
 
 
 def page_not_found(request, exception):
-    # Переменная exception содержит отладочную информацию,
-    # выводить её в шаблон пользовательской страницы 404 мы не станем
     return render(
         request,
         "misc/404.html",
@@ -144,8 +141,7 @@ def server_error(request):
 
 @login_required
 def follow_index(request):
-    followage = get_list_or_404(Follow, user=request.user)
-    print(followage)
+    followage = Follow.objects.filter(user=request.user)
     post_list = Post.objects.none()
     for follows in followage:
         post_list |= Post.objects.filter(author__username=str(follows.author))
@@ -160,19 +156,15 @@ def profile_follow(request, username):
     if request.user.username == username:
         return redirect('profile', username)
     all_user_follows = Follow.objects.filter(user=request.user)
-    print(all_user_follows)
     username = get_object_or_404(User, username=username)
     follow = Follow(
         user=request.user,
         author=username,
     )
     for each_follow in all_user_follows:
-        print(each_follow.author, follow.author)
         if each_follow.author == follow.author:
             return redirect('profile', username)
     follow.save()
-    print(request.user.username)
-    print(username)
     return redirect('profile', username)
 
 
