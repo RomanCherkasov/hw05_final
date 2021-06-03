@@ -139,6 +139,7 @@ class ViewsTests(TestCase):
         response = self.authorized_client.get(
             reverse('profile',
                     kwargs={'username': self.user.username, }))
+        print(response)
         self.post_check(response.context['page'][0])
         self.assertEqual(response.context['author'], self.user)
         self.assertEqual(

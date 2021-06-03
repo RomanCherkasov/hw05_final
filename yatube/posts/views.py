@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .models import Post, Group, User, Follow
@@ -31,6 +31,15 @@ def group_posts(request, slug):
                   context=context)
 
 
+def follow_check(follower, following):
+    all_follows = Follow.objects.all()
+
+    for follow in all_follows:
+        if str(follow.author) == following:
+            return True
+    return False
+
+
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author__username=username)
@@ -38,12 +47,17 @@ def profile(request, username):
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
+    print(request.user)
+    check_follow = False
+    if str(request.user) != 'AnonymousUser':
+        check_follow = follow_check(request.user, username)
     return render(request,
                   'profile.html',
                   {'page': page,
                    'author': author,
                    'profile': author,
-                   'count_post': count_post, })
+                   'count_post': count_post,
+                   'following': check_follow, })
 
 
 def post_view(request, username, post_id):
@@ -60,6 +74,7 @@ def post_view(request, username, post_id):
                    'count_post': count_post,
                    'form': form,
                    'comments': all_comments,
+                   'profile': author,
                    })
 
 
@@ -103,6 +118,7 @@ def post_edit(request, username, post_id):
         form.save()
         return redirect('post', username, post_id)
     context = {'form': form,
+               'Post': this_post,
                'is_edit': True, }
     return render(request,
                   'create_and_edit_post.html',
@@ -126,14 +142,43 @@ def server_error(request):
 
 @login_required
 def follow_index(request):
-    return render(request, 'follow.html')
+    followage = get_list_or_404(Follow, user=request.user)
+    print(followage)
+    post_list = Post.objects.none()
+    for follows in followage:
+        post_list |= Post.objects.filter(author__username=str(follows.author))
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+    return render(request, 'follow.html', {'page': page})
 
 
 @login_required
 def profile_follow(request, username):
+    if request.user.username == username:
+        return redirect('profile', username)
+    all_user_follows = Follow.objects.filter(user=request.user)
+    print(all_user_follows)
     username = get_object_or_404(User, username=username)
-    return render(request, 'profile.html', {'profile': username})
+    follow = Follow(
+        user=request.user,
+        author=username,
+    )
+    for each_follow in all_user_follows:
+        print(each_follow.author, follow.author)
+        if each_follow.author == follow.author:
+            return redirect('profile', username)
+    follow.save()
+    print(request.user.username)
+    print(username)
+    return redirect('profile', username)
 
 
+@login_required
 def profile_unfollow(request, username):
-    pass
+    username = get_object_or_404(User, username=username)
+    if str(request.user) != 'AnonymousUser':
+        unfollow = get_object_or_404(Follow, user=request.user, author=username)
+        unfollow.delete()
+    return redirect('profile', username)
+
