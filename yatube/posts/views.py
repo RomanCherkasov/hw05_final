@@ -1,4 +1,5 @@
-from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
+from django.shortcuts import render, get_object_or_404, redirect, \
+    get_list_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .models import Post, Group, User, Follow
@@ -113,7 +114,8 @@ def post_edit(request, username, post_id):
     this_post = get_object_or_404(Post, pk=post_id, author__username=username)
     if this_post.author != request.user:
         return redirect('post', username, post_id)
-    form = PostForm(request.POST or None, files=request.FILES or None, instance=this_post)
+    form = PostForm(request.POST or None, files=request.FILES or None,
+                    instance=this_post)
     if form.is_valid():
         form.save()
         return redirect('post', username, post_id)
@@ -178,7 +180,7 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     username = get_object_or_404(User, username=username)
     if str(request.user) != 'AnonymousUser':
-        unfollow = get_object_or_404(Follow, user=request.user, author=username)
+        unfollow = get_object_or_404(Follow, user=request.user,
+                                     author=username)
         unfollow.delete()
     return redirect('profile', username)
-
