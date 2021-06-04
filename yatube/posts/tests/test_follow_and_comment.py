@@ -1,4 +1,4 @@
-from ..models import Post, Group, User, Follow, Comment
+from ..models import Post, Group, User, Follow
 from django.test import Client, TestCase
 from django.urls import reverse
 from http import HTTPStatus
