@@ -26,26 +26,42 @@ class FollowTest(TestCase):
         )
         self.post = Post.objects.create(
             text='Текст для тестового поста ',
-            author=self.user,
+            author=self.user_for_follow,
             group=self.group,
         )
 
     def test_comments(self):
         """Тестируем может ли не авторизированный и авторизированный
          пользователь оставлять комментарии"""
-        self.comment = Comment.objects.create(
-            text='Какой то комментарий',
-            author_id=int(self.user.id),
-            post_id=int(self.post.id)
-        )
         response = self.guest_client.get(reverse(
-            'add_comment', kwargs={'username': self.user,
+            'add_comment', kwargs={'username': self.user_for_follow,
                                    'post_id': self.post.id}))
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         response = self.simple_user.get(reverse(
-            'add_comment', kwargs={'username': self.user,
+            'add_comment', kwargs={'username': self.user_for_follow,
                                    'post_id': self.post.id}))
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_follow_add_unfollow(self):
-        pass
+        """Тестируем подписку и отписку на пользователя"""
+        self.simple_user.get(reverse(
+            'profile_follow', kwargs={'username': self.user_for_follow}
+        ))
+        follows = Follow.objects.filter(user=self.user.id)
+        self.assertEqual(follows.count(), 1)
+        self.simple_user.get(reverse(
+            'profile_unfollow', kwargs={'username': self.user_for_follow}
+        ))
+        follows = Follow.objects.filter(user=self.user.id)
+        self.assertEqual(follows.count(), 0)
+
+    def test_follow_page(self):
+        """Проверяем есть ли запись у пользователей подписанных
+        и не подписанных на автора"""
+        self.simple_user.get(reverse(
+            'profile_follow', kwargs={'username': self.user_for_follow}
+        ))
+        response = self.simple_user.get(reverse('follow_index'))
+        self.assertEqual(len(response.context['page']), 1)
+        response = self.follow_user.get(reverse('follow_index'))
+        self.assertEqual(len(response.context['page']), 0)

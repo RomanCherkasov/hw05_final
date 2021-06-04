@@ -1,5 +1,4 @@
-from django.shortcuts import render, get_object_or_404, redirect, \
-    get_list_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .models import Post, Group, User, Follow
@@ -98,6 +97,7 @@ def add_comment(request, username, post_id):
                    'form': form,
                    'comments': all_comments,
                    'profile': author, })
+
 
 @login_required
 def new_post(request):
