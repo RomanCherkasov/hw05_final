@@ -1,6 +1,5 @@
 import shutil
 import tempfile
-import time
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -139,7 +138,6 @@ class ViewsTests(TestCase):
         response = self.authorized_client.get(
             reverse('profile',
                     kwargs={'username': self.user.username, }))
-        print(response)
         self.post_check(response.context['page'][0])
         self.assertEqual(response.context['author'], self.user)
         self.assertEqual(
@@ -172,6 +170,3 @@ class ViewsTests(TestCase):
         )
         response2 = self.authorized_client.get(reverse('index'))
         self.assertEqual(len(response1.content), len(response2.content))
-        time.sleep(20)
-        response3 = self.authorized_client.get(reverse('index'))
-        self.assertNotEqual(len(response2.content), len(response3.content))

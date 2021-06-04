@@ -83,13 +83,21 @@ def add_comment(request, username, post_id):
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, author=author, pk=post_id)
     form = CommentForm(request.POST or None)
+    all_comments = post.comments.all().order_by('-created')
     if form.is_valid():
         comment = form.save(commit=False)
         comment.author = author
         comment.post = post
         form.save()
-    return redirect('post', username, post_id)
-
+        return redirect('post', username, post_id)
+    return render(request,
+                  'post.html',
+                  {'author': author,
+                   'post': post,
+                   'count_post': 1,
+                   'form': form,
+                   'comments': all_comments,
+                   'profile': author, })
 
 @login_required
 def new_post(request):
