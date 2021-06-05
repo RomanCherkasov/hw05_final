@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'about',
     'sorl.thumbnail',
     'debug_toolbar',
-    'django_extensions',
 ]
 
 INTERNAL_IPS = [
