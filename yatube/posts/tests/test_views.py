@@ -252,4 +252,3 @@ class ViewsTests(TestCase):
         self.assertEqual(len(response.context['page']), 1)
         response = self.follow_user.get(reverse('follow_index'))
         self.assertEqual(len(response.context['page']), 0)
-
