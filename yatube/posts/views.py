@@ -31,15 +31,6 @@ def group_posts(request, slug):
                   context=context)
 
 
-def follow_check(follower, following):
-    all_follows = Follow.objects.all()
-
-    for follow in all_follows:
-        if str(follow.author) == following:
-            return True
-    return False
-
-
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author__username=username)
@@ -48,8 +39,10 @@ def profile(request, username):
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     check_follow = False
-    if str(request.user) != 'AnonymousUser':
-        check_follow = follow_check(request.user, username)
+    if request.user.is_authenticated:
+        check_follow = Follow.objects.filter(
+            user=request.user, author=author
+        ).exists()
     return render(request,
                   'profile.html',
                   {'page': page,
@@ -138,7 +131,6 @@ def page_not_found(request, exception):
     return render(
         request,
         "misc/404.html",
-        {"path": request.path},
         status=404
     )
 
@@ -149,10 +141,7 @@ def server_error(request):
 
 @login_required
 def follow_index(request):
-    followage = Follow.objects.filter(user=request.user)
-    post_list = Post.objects.none()
-    for follows in followage:
-        post_list |= Post.objects.filter(author__username=str(follows.author))
+    post_list = Post.objects.filter(author__following__user=request.user)
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
@@ -163,16 +152,16 @@ def follow_index(request):
 def profile_follow(request, username):
     if request.user.username == username:
         return redirect('profile', username)
-    all_user_follows = Follow.objects.filter(user=request.user)
     username = get_object_or_404(User, username=username)
-    follow = Follow(
-        user=request.user,
-        author=username,
-    )
-    for each_follow in all_user_follows:
-        if each_follow.author == follow.author:
-            return redirect('profile', username)
-    follow.save()
+    check_follow = Follow.objects.filter(
+        user=request.user, author=username
+    ).exists()
+    if not check_follow:
+        follow = Follow(
+            user=request.user,
+            author=username,
+        )
+        follow.save()
     return redirect('profile', username)
 
 
