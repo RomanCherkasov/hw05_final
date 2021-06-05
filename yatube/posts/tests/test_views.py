@@ -4,7 +4,7 @@ import tempfile
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
-from ..models import Post, Group, User
+from ..models import Post, Group, User, Comment, Follow
 from django.urls import reverse
 from django import forms
 
@@ -20,8 +20,13 @@ class ViewsTests(TestCase):
         self.user = User.objects.create_user(
             username='TestUser'
         )
+        self.user_for_follow = User.objects.create_user(
+            username='TestForFollow'
+        )
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.follow_user = Client()
+        self.follow_user.force_login(self.user_for_follow)
         # Создадим группу для теста
         self.group = Group.objects.create(
             title='Тестовая группа',
@@ -170,3 +175,81 @@ class ViewsTests(TestCase):
         )
         response2 = self.authorized_client.get(reverse('index'))
         self.assertEqual(len(response1.content), len(response2.content))
+
+    def test_comments_authorized_user(self):
+        """Тестируем может ли авторизированный
+         пользователь оставлять комментарии"""
+        post = Post.objects.first()
+        print(post)
+        form_data = {
+            'post': post,
+            'author': self.user,
+            'text': 'Текст тестового комментария',
+        }
+        self.authorized_client.post(
+            reverse('add_comment', kwargs={
+                'username': self.user.username,
+                'post_id': post.id
+            }),
+            data=form_data,
+            follow=True
+        )
+        comment = Comment.objects.first()
+        print(comment)
+        self.assertEqual(comment.text, form_data['text'])
+        self.assertEqual(comment.post, form_data['post'])
+        self.assertEqual(comment.author, form_data['author'])
+
+    def test_comments_non_authorized_user(self):
+        """Тестируем может ли не авторизированный
+            пользователь оставлять комментарии"""
+        post = Post.objects.first()
+        form_data = {
+            'post': post,
+            'author': self.user,
+            'text': 'Текст тестового комментария',
+        }
+        self.guest_client.post(
+            reverse('add_comment', kwargs={
+                'username': self.user.username,
+                'post_id': post.id
+            }),
+            data=form_data,
+            follow=True
+        )
+        self.assertIsNone(Comment.objects.first())
+
+    def test_follow(self):
+        self.authorized_client.get(reverse(
+            'profile_follow', kwargs={'username': self.user_for_follow}
+        ))
+        follows = Follow.objects.filter(user=self.user.id)
+        self.assertEqual(follows.count(), 1)
+
+    def test_unfollow(self):
+        self.authorized_client.get(reverse(
+            'profile_follow', kwargs={'username': self.user_for_follow}
+        ))
+        self.authorized_client.get(reverse(
+            'profile_unfollow', kwargs={'username': self.user_for_follow}
+        ))
+        follows = Follow.objects.filter(user=self.user.id)
+        self.assertEqual(follows.count(), 0)
+
+    def test_follow_page(self):
+        self.another_post = Post.objects.create(
+            text='Текст проверки фолова ',
+            author=self.user_for_follow,
+            group=self.group,
+        )
+        """Проверяем есть ли запись у пользователей подписанных
+        и не подписанных на автора"""
+        self.authorized_client.get(reverse(
+            'profile_follow', kwargs={'username': self.user_for_follow}
+        ))
+        response = self.authorized_client.get(reverse('follow_index'))
+        print(response.context['page'][0])
+        self.assertEqual(len(response.context['page']), 1)
+        response = self.follow_user.get(reverse('follow_index'))
+        self.assertEqual(len(response.context['page']), 0)
+
