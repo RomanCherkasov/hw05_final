@@ -5,9 +5,6 @@ User = get_user_model()
 
 
 class Post(models.Model):
-    class Meta:
-        ordering = ['-pub_date']
-
     text = models.TextField()
     pub_date = models.DateTimeField('date published', auto_now_add=True)
     author = models.ForeignKey(
@@ -22,6 +19,9 @@ class Post(models.Model):
         null=True,
     )
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
+
+    class Meta:
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.text[:15]
@@ -53,6 +53,10 @@ class Follow(models.Model):
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
                                related_name='following',)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'author'], name='unique_follow')]
 
 
 class Group(models.Model):
