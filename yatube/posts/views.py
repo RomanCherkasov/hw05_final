@@ -43,13 +43,21 @@ def profile(request, username):
         check_follow = Follow.objects.filter(
             user=request.user, author=author
         ).exists()
+    follow_count = Follow.objects.filter(
+        author=author
+    ).count()
+    self_follow_count = Follow.objects.filter(
+        user=author
+    ).count()
     return render(request,
                   'profile.html',
                   {'page': page,
                    'author': author,
                    'profile': author,
                    'count_post': count_post,
-                   'following': check_follow, })
+                   'following': check_follow,
+                   'follow_count': follow_count,
+                   'self_follow_count': self_follow_count, })
 
 
 def post_view(request, username, post_id):
@@ -59,6 +67,12 @@ def post_view(request, username, post_id):
     form = CommentForm(request.POST or None)
     post = post_list.filter(id=post_id)
     all_comments = post[0].comments.all().order_by('-created')
+    follow_count = Follow.objects.filter(
+        author=author
+    ).count()
+    self_follow_count = Follow.objects.filter(
+        user=author
+    ).count()
     return render(request,
                   'post.html',
                   {'author': author,
@@ -67,6 +81,8 @@ def post_view(request, username, post_id):
                    'form': form,
                    'comments': all_comments,
                    'profile': author,
+                   'follow_count': follow_count,
+                   'self_follow_count': self_follow_count,
                    })
 
 
