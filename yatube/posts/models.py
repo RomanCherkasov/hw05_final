@@ -41,6 +41,9 @@ class Comment(models.Model):
     text = models.TextField()
     created = models.DateTimeField('Date published', auto_now_add=True)
 
+    def __str__(self):
+        return self.text
+
 
 class Follow(models.Model):
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Group
+from .models import Post, Group, Comment
 
 
 class Posts(admin.ModelAdmin):
@@ -11,10 +11,18 @@ class Posts(admin.ModelAdmin):
 
 class Groups(admin.ModelAdmin):
     list_display = ('pk', 'title', 'description')
-    # Не уверен на счет необходимости добавлять фильтр
+    list_filter = ('title',)
     search_fields = ('title',)
+    empty_value_display = '-пусто-'
+
+
+class Comments(admin.ModelAdmin):
+    list_display = ('pk', 'text', 'created', 'post', 'author')
+    list_filter = ('author',)
+    search_fields = ('text',)
     empty_value_display = '-пусто-'
 
 
 admin.site.register(Post, Posts)
 admin.site.register(Group, Groups)
+admin.site.register(Comment, Comments)

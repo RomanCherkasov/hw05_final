@@ -5,9 +5,9 @@ from django.forms import ModelForm
 class PostForm(ModelForm):
     class Meta:
         model = Post
-        fields = ['text',
+        fields = ('text',
                   'group',
-                  'image', ]
+                  'image',)
         labels = {'text': 'Текст статьи',
                   'group': 'Группа', }
         help_texts = {'text': 'Введите текст статьи',
@@ -17,4 +17,6 @@ class PostForm(ModelForm):
 class CommentForm(ModelForm):
     class Meta:
         model = Comment
-        fields = {'text', }
+        fields = ('text', )
+        labels = {'text': 'Текст комментария'}
+        help_texts = {'text': 'Введите текст комментария'}
