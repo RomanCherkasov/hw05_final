@@ -180,7 +180,6 @@ class ViewsTests(TestCase):
         """Тестируем может ли авторизированный
          пользователь оставлять комментарии"""
         post = Post.objects.first()
-        print(post)
         form_data = {
             'post': post,
             'author': self.user,
@@ -195,7 +194,6 @@ class ViewsTests(TestCase):
             follow=True
         )
         comment = Comment.objects.first()
-        print(comment)
         self.assertEqual(comment.text, form_data['text'])
         self.assertEqual(comment.post, form_data['post'])
         self.assertEqual(comment.author, form_data['author'])
@@ -248,7 +246,6 @@ class ViewsTests(TestCase):
             'profile_follow', kwargs={'username': self.user_for_follow}
         ))
         response = self.authorized_client.get(reverse('follow_index'))
-        print(response.context['page'][0])
         self.assertEqual(len(response.context['page']), 1)
         response = self.follow_user.get(reverse('follow_index'))
         self.assertEqual(len(response.context['page']), 0)

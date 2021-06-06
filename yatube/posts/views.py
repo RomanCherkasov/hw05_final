@@ -184,8 +184,7 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     username = get_object_or_404(User, username=username)
-    if str(request.user) != 'AnonymousUser':
-        unfollow = get_object_or_404(Follow, user=request.user,
-                                     author=username)
-        unfollow.delete()
+    unfollow = get_object_or_404(Follow, user=request.user,
+                                 author=username)
+    unfollow.delete()
     return redirect('profile', username)

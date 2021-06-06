@@ -4,7 +4,7 @@
 {% block content %}
 <main role="main" class="container">
   <div class="row">
-    {% include 'includes/profile_card.html' %}
+    {% include 'includes/profile_card.html' with author=author posts_count=posts_count %}
 
      <div class="col-md-9">
     {% for post in page %}
@@ -12,7 +12,7 @@
     {% endfor %}
         <!-- Конец блока с отдельным постом -->
         <!-- Остальные посты -->
-     <p>{% include 'includes/paginator.html' %}</p>
+     <p>{% include 'includes/paginator.html' with page=page %}</p>
      <!-- Здесь постраничная навигация паджинатора -->
      </div>
 
